@@ -86,19 +86,53 @@ class FaceRecog():
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-
-            ##insert db
-            # MySQL Connection 연결
-            conn = pymysql.connect(host='localhost', user='root', password='asd1234',
-                                db='autofacecheck', charset='utf8')
             
+           # MySQL 데이터 처리
+            # MySQL Connection 셋팅
+            conn = pymysql.connect(host='localhost', user='root', password='as097531',
+                                db='autofacecheck', charset='utf8')
+
+            ##### 다은이 DB
+            # conn = pymysql.connect(host='localhost', user='root', password='asd1234',
+            #                     db='autofacecheck', charset='utf8')
+
+
+
             # Connection 으로부터 Cursor 생성
             curs = conn.cursor()
 
-            #insert 테스트
-            sql2 = """insert into stuList(stuId,stuName)
+            # 얼굴 인식 후 전체 출석부에 있는 얼굴인지 테스트 한다.
+            # existStu 0이면 없는 사람, 1이명 있는 사람이다.
+            sqlCount = "select count(*) as cnt from stuList where stuID = %s;"
+            curs.execute(sqlCount, int(name))
+            existStu = curs.fetchone()[0]
+            print(existStu)
+
+            sqlList = "select * from stuList where stuId = %s;"
+            stuList = curs.execute(sqlList, int(name))
+            stuName = curs.fetchone()[2]
+
+            # existStu > 0 -> 전체 출석부에 이름이 있으면 실행
+            if existStu > 0:
+                sqlCountN = "select count(*) as cnt from checknormality"
+                curs.execute(sqlCountN)
+                alreadyExist = curs.fetchone()[0]
+                # print(alreadyExist)
+                if alreadyExist < 1:
+                    normalCheckSql = """insert into checknormality(stuId,stuName)
                     values (%s, %s)"""
-            curs.execute(sql2, (201401556, "김성민2"))
+                    curs.execute(normalCheckSql, (int(name), stuName))
+                # className = "check"
+                # checkType = "Normality"
+                # tableName = className + checkType
+                # createSql = """create table `autoFaceCheck`.`%s` (
+                #     `attendTime` timestamp default now(),
+	            #     `stuId` int NOT NULL,
+                #     `stuName` VARCHAR(45) NOT NULL
+                # );"""
+                # curs.execute(createSql, tableName)
+                # 정상 출석부에 이름을 추가
+
             conn.commit()
             conn.close()
 
