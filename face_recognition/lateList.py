@@ -69,19 +69,37 @@ class FaceRecog():
 
                 print(stuName + " 은 해당 강의 수강생 입니다")
 
-                #############정상 출석부 checknormality에 있는지 확인
-                sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
-                curs.execute(sqlCountN, int(userInfo))
+                #############결석 출석부 absenceList에 있는지 확인
+                sqlCountA = "select count(*) as cnt from checkabsence where stuId = %s;"
+                curs.execute(sqlCountA, int(userInfo))
                 alreadyExist = curs.fetchone()[0]
-                # checknormality -> 정상 출석 출석부, 이름이 등록되어 있지 않으면 등록하도록 한다
-                if alreadyExist < 1:
-                    normalCheckSql = """insert into checknormality(stuId,stuName)
-                    values (%s, %s)"""
-                    curs.execute(normalCheckSql, (int(userInfo), stuName))
-                    print(stuName + "은 정상 출석부에 반영되었습니다")
 
+                # absenceList -> 결석 출석 출석부에 이름이 있으면 지각자로 처리 시작
+                if alreadyExist > 0:
+
+                    print(stuName + " 은 지각생 입니다")
+
+                    # 예외처리 -> 에러 방지용
+                    lateCheckSql = "select count(*) as cnt from checklate where stuId = %s;"
+                    curs.execute(lateCheckSql, int(userInfo))
+                    alreadyExistL = curs.fetchone()[0]
+
+                    #지각자 명부에 안적혀 있을 경우
+                    if alreadyExistL < 1:
+                        absenceDeleteSql = "delete from checkabsence where stuName = %s;"
+                        curs.execute(absenceDeleteSql, stuName)
+
+                        lateInsertSql = "insert into checklate(stuId,stuName) values (%s, %s);"
+                        curs.execute(lateInsertSql, (int(userInfo), stuName))
+
+                        print(stuName + "은 지각으로 변경되었습니다")
+
+                    else:
+                        print("에러 방지")
+
+                # 결석 출석부에 없으므로 정상 출석부에 있는 학생임
                 else:
-                    print(stuName + "은 이미 정상 출석 되어있습니다")
+                    print(stuName + "은 정상 출석 상태 입니다")
                 # className = "check"
                 # checkType = "Normality"
                 # tableName = className + checkType
@@ -186,3 +204,38 @@ if __name__ == '__main__':
     # do a bit of cleanup
     cv2.destroyAllWindows()
     print('finish')
+                # #전체출석부에 있는가
+                # sqlCount = "select count(*) as cnt from stuList where stuID = %s;"
+                # curs.execute(sqlCount, int(userInfo))
+                # existStu = curs.fetchone()[0]
+
+                # #전체출석부에 있다면 실행
+                # if existStu > 0:
+                #     print("이 강의를 수강생 입니다.")
+                #     #정상출석부에 있는가
+                #     sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
+                #     curs.execute(sqlCountN, int(userInfo))
+                #     alreadyExist = curs.fetchone()[0]
+
+                #     #정상출석부에 없다면 실행
+                #     if alreadyExist < 1:
+
+                #         print("지각생 입니다.")
+
+                #         #지각출석부에 있는가
+                #         sqlCountL = "select count(*) as cnt from checklate where stuId = %s"
+                #         curs.execute(sqlCountL, int(userInfo))
+                #         alreadyExistL = curs.fetchone()[0]
+
+                #         #지각출석부에 없다면 실행
+                #         if alreadyExistL < 1:
+                #             lateCheckSql = """insert into checknormality(stuId,stuName)
+                #             values (%s, %s)"""
+                #             curs.execute(normalCheckSql, (int(userInfo), stuName))
+                #             print(stuName + "은 지각 처리가 반영되었습니다")
+                    
+                #     else:
+                #         print("정상 출석된 학생입니다.")
+                
+                # else:
+                #     print("해당 강의 수강생이 아닙니다.")
