@@ -20,8 +20,7 @@ class VideoCamera(object):
         ret, frame = self.video.read()
         return frame
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     cam = VideoCamera()
     while True:
         frame = cam.get_frame()

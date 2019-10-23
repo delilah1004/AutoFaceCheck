@@ -45,7 +45,7 @@ class FaceRecog():
             # conn = pymysql.connect(host='localhost', user='root', password='as097531',
             #                     db='autofacecheck', charset='utf8')
 
-            ##### 다은이 DB
+            #### 다은이 DB
             conn = pymysql.connect(host='localhost', user='root', password='asd1234',
                                 db='autofacecheck', charset='utf8')
 
@@ -69,19 +69,37 @@ class FaceRecog():
 
                 print(stuName + " 은 해당 강의 수강생 입니다")
 
-                #############정상 출석부 checknormality에 있는지 확인
-                sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
-                curs.execute(sqlCountN, int(userInfo))
+                #############결석 출석부 absenceList에 있는지 확인
+                sqlCountA = "select count(*) as cnt from checkabsence where stuId = %s;"
+                curs.execute(sqlCountA, int(userInfo))
                 alreadyExist = curs.fetchone()[0]
-                # checknormality -> 정상 출석 출석부, 이름이 등록되어 있지 않으면 등록하도록 한다
-                if alreadyExist < 1:
-                    normalCheckSql = """insert into checknormality(stuId,stuName)
-                    values (%s, %s)"""
-                    curs.execute(normalCheckSql, (int(userInfo), stuName))
-                    print(stuName + "은 정상 출석부에 반영되었습니다")
 
+                # absenceList -> 결석 출석 출석부에 이름이 있으면 지각자로 처리 시작
+                if alreadyExist > 0:
+
+                    print(stuName + " 은 지각생 입니다")
+
+                    # 예외처리 -> 에러 방지용
+                    lateCheckSql = "select count(*) as cnt from checklate where stuId = %s;"
+                    curs.execute(lateCheckSql, int(userInfo))
+                    alreadyExistL = curs.fetchone()[0]
+
+                    #지각자 명부에 안적혀 있을 경우
+                    if alreadyExistL < 1:
+                        absenceDeleteSql = "delete from checkabsence where stuName = %s;"
+                        curs.execute(absenceDeleteSql, stuName)
+
+                        lateInsertSql = "insert into checklate(stuId,stuName) values (%s, %s);"
+                        curs.execute(lateInsertSql, (int(userInfo), stuName))
+
+                        print(stuName + "은 지각으로 변경되었습니다")
+
+                    else:
+                        print("에러 방지")
+
+                # 결석 출석부에 없으므로 정상 출석부에 있는 학생임
                 else:
-                    print(stuName + "은 이미 정상 출석 되어있습니다")
+                    print(stuName + "은 정상 출석 상태 입니다")
                 # className = "check"
                 # checkType = "Normality"
                 # tableName = className + checkType
@@ -168,8 +186,10 @@ class FaceRecog():
         ret, jpg = cv2.imencode('.jpg', frame)
         return jpg.tobytes()
 
+def checkLateStart():
 
-if __name__ == '__main__':
+    print("지각체크를 시작 합니다")
+
     face_recog = FaceRecog()
     print(face_recog.known_face_names)
     while True:
