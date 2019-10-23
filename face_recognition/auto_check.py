@@ -49,6 +49,9 @@ class FaceRecog():
             # conn = pymysql.connect(host='localhost', user='root', password='asd1234',
             #                     db='autofacecheck', charset='utf8')
 
+            # conn = pymysql.connect(host='localhost', user='root', password='ghwns4825',
+            #                     db='autofacecheck', charset='utf8')
+
 
 
             # Connection 으로부터 Cursor 생성
@@ -168,8 +171,10 @@ class FaceRecog():
         ret, jpg = cv2.imencode('.jpg', frame)
         return jpg.tobytes()
 
+def checkNormalityStart():
 
-if __name__ == '__main__':
+    print("출석체크를 시작 합니다")
+
     face_recog = FaceRecog()
     print(face_recog.known_face_names)
     while True:

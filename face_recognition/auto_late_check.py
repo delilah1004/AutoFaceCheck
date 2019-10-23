@@ -186,8 +186,10 @@ class FaceRecog():
         ret, jpg = cv2.imencode('.jpg', frame)
         return jpg.tobytes()
 
+def checkLateStart():
 
-if __name__ == '__main__':
+    print("지각체크를 시작 합니다")
+
     face_recog = FaceRecog()
     print(face_recog.known_face_names)
     while True:
@@ -204,38 +206,3 @@ if __name__ == '__main__':
     # do a bit of cleanup
     cv2.destroyAllWindows()
     print('finish')
-                # #전체출석부에 있는가
-                # sqlCount = "select count(*) as cnt from stuList where stuID = %s;"
-                # curs.execute(sqlCount, int(userInfo))
-                # existStu = curs.fetchone()[0]
-
-                # #전체출석부에 있다면 실행
-                # if existStu > 0:
-                #     print("이 강의를 수강생 입니다.")
-                #     #정상출석부에 있는가
-                #     sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
-                #     curs.execute(sqlCountN, int(userInfo))
-                #     alreadyExist = curs.fetchone()[0]
-
-                #     #정상출석부에 없다면 실행
-                #     if alreadyExist < 1:
-
-                #         print("지각생 입니다.")
-
-                #         #지각출석부에 있는가
-                #         sqlCountL = "select count(*) as cnt from checklate where stuId = %s"
-                #         curs.execute(sqlCountL, int(userInfo))
-                #         alreadyExistL = curs.fetchone()[0]
-
-                #         #지각출석부에 없다면 실행
-                #         if alreadyExistL < 1:
-                #             lateCheckSql = """insert into checknormality(stuId,stuName)
-                #             values (%s, %s)"""
-                #             curs.execute(normalCheckSql, (int(userInfo), stuName))
-                #             print(stuName + "은 지각 처리가 반영되었습니다")
-                    
-                #     else:
-                #         print("정상 출석된 학생입니다.")
-                
-                # else:
-                #     print("해당 강의 수강생이 아닙니다.")

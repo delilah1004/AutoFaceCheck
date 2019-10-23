@@ -57,7 +57,6 @@ def lateListCheck():
     conn.commit()
     conn.close()
 
-
-if __name__ == '__main__':
+def checkAbsenceStart():
     print("결석자 분류 시작")
     lateListCheck()
