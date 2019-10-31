@@ -8,7 +8,8 @@
   - Modules : face_recognition, flask, openCV, PyMySQL
   - Tools : qtpy5, designer, JSP, Anaconda
 ````````````````````````
-# 사전 준비 사항
+
+# Preparations
 ````````````````````````
   - https://www.anaconda.com/distribution (Install Anaconda)
   - conda update conda
@@ -23,7 +24,7 @@
   - python login.py (Must run where 'login.py' file is located)
 ````````````````````````
 
-# 파일 설명
+# Files & Folder
 ````````````````````````
   - camera.py -> For camera test
   - login.py -> Login UI
