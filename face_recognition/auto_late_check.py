@@ -54,62 +54,67 @@ class FaceRecog():
             # Connection 으로부터 Cursor 생성
             curs = conn.cursor()
 
-            # 얼굴 인식 후 전체 출석부에 있는 얼굴인지 테스트 한다.
-            # existStu 0이면 없는 사람, 1이면 있는 사람이다.
+            # 전체 출석부에 있는지 확인
             sqlCount = "select count(*) as cnt from stuList where stuID = %s;"
             curs.execute(sqlCount, int(userInfo))
             existStu = curs.fetchone()[0]
 
-            # existStu > 0 -> 전체 출석부에 이름이 있으면 실행
+            # 전체 출석부에 이름이 있으면
             if existStu > 0:
-                # 해당 학번 학생의 이름이 무엇인지 전체 출석부에서 확인
+
+                # 해당 학번 학생의 이름 출력
                 sqlList = "select * from stuList where stuId = %s;"
                 curs.execute(sqlList, int(userInfo))
                 stuName = curs.fetchone()[2]
 
-                print(stuName + " 은 해당 강의 수강생 입니다")
-
-                #############결석 출석부 absenceList에 있는지 확인
+                # 결석자 명단에 있는지 확인
                 sqlCountA = "select count(*) as cnt from checkabsence where stuId = %s;"
                 curs.execute(sqlCountA, int(userInfo))
-                alreadyExist = curs.fetchone()[0]
+                existStuA = curs.fetchone()[0]
 
-                # absenceList -> 결석 출석 출석부에 이름이 있으면 지각자로 처리 시작
-                if alreadyExist > 0:
+                print(stuName + " 은 해당 강의 수강생 입니다")
+
+                # 지각자 명단에 있는지 확인
+                lateCheckSql = "select count(*) as cnt from checklate where stuId = %s;"
+                curs.execute(lateCheckSql, int(userInfo))
+                existStuL = curs.fetchone()[0]
+
+                # 정상 출석부에 있는지 확인
+                sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
+                curs.execute(sqlCountN, int(userInfo))
+                existStuN = curs.fetchone()[0]
+
+                # 결석자 명단에 있으면
+                if existStuA > 0:
 
                     print(stuName + " 은 지각생 입니다")
 
-                    # 예외처리 -> 에러 방지용
-                    lateCheckSql = "select count(*) as cnt from checklate where stuId = %s;"
-                    curs.execute(lateCheckSql, int(userInfo))
-                    alreadyExistL = curs.fetchone()[0]
+                    # 지각자, 정상자 명단에 없으면
+                    if existStuL < 1 and existStuN < 1:
 
-                    #지각자 명부에 안적혀 있을 경우
-                    if alreadyExistL < 1:
+                        # 결석자 명단서 삭제
                         absenceDeleteSql = "delete from checkabsence where stuName = %s;"
                         curs.execute(absenceDeleteSql, stuName)
 
+                        # 지각자 명단에 추가
                         lateInsertSql = "insert into checklate(stuId,stuName) values (%s, %s);"
                         curs.execute(lateInsertSql, (int(userInfo), stuName))
 
                         print(stuName + "은 지각으로 변경되었습니다")
 
                     else:
-                        print("에러 방지")
+                        print("출석부 중복 에러. DB 확인 요망")
 
-                # 결석 출석부에 없으므로 정상 출석부에 있는 학생임
+                # 결석자 명단에 없으면
                 else:
-                    print(stuName + "은 정상 출석 상태 입니다")
-                # className = "check"
-                # checkType = "Normality"
-                # tableName = className + checkType
-                # createSql = """create table `autoFaceCheck`.`%s` (
-                #     `attendTime` timestamp default now(),
-	            #     `stuId` int NOT NULL,
-                #     `stuName` VARCHAR(45) NOT NULL
-                # );"""
-                # curs.execute(createSql, tableName)
-                # 정상 출석부에 이름을 추가
+
+                    # 정상 출석부에 없고, 지각자 명단에 있으면
+                    if existStuL > 0 and existStuN < 1:
+                        print(stuName + "은 이미 지각 체크를 하였습니다.")
+
+                    else:
+                        print("출석부 중복 에러. DB 확인 요망")
+
 
 
             

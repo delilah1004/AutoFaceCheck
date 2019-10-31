@@ -4,8 +4,6 @@ def lateListCheck():
 
     print("정상출석부와 대조 시작")
 
-    absenceNum = 0
-
     # MySQL 데이터 처리
     # MySQL Connection 셋팅
     conn = pymysql.connect(host='localhost', user='root', password='as097531',
@@ -17,7 +15,7 @@ def lateListCheck():
 
     curs = conn.cursor()
 
-    #전체 출석부 출력
+    # 전체 출석부 출력
     sql = "select * from stuList;"
     curs.execute(sql)
     stuList = curs.fetchall()
@@ -27,35 +25,43 @@ def lateListCheck():
         stuId = stu[1]
         stuName = stu[2]
 
+        # 정상 출석부에 있는지 확인
         nCheckSql = "select count(*) as cnt from checknormality where stuID = %s;"
         curs.execute(nCheckSql, stuId)
         existStuN = curs.fetchone()[0]
 
-        #정상출석부에 수강생 없을 경우 실행
+        # 지각생 리스트에 있는지 확인
+        aCheckSql = "select count(*) as cnt from checklate where stuID = %s;"
+        curs.execute(aCheckSql, stuId)
+        existStuL = curs.fetchone()[0]
+
+        # 결석자 명단에 있는지 확인
+        sqlCountA = "select count(*) as cnt from checkabsence where stuId = %s;"
+        curs.execute(sqlCountA, stuId)
+        existStuA = curs.fetchone()[0]
+
+        # 전체 출석부 명단에 있는 수강생과 정상 출석부 있는 사람들 비교, 정상 출석부에 없으면
         if existStuN < 1:
 
-            # 지각생 리스트에 있는지 확인(예외처리를 위함)
-            aCheckSql = "select count(*) as cnt from checkabsence where stuID = %s;"
-            curs.execute(aCheckSql, stuId)
-            existStuA = curs.fetchone()[0]
+            # 지각자 명단, 결석자 명단에도 없음
+            if existStuL < 1 and existStuA < 1:
 
-            #기존 리스트에 없었으므로 디비에 반영
-            if existStuA < 1:
+                # 결석자 명단에 추가
                 absenceInsertSql = "insert into checkabsence(stuId,stuName) values (%s, %s);"
                 curs.execute(absenceInsertSql, (stuId, stuName))
-                absenceNum += 1
-                print("결석 인원 체크 : " + str(absenceNum) + "명")
 
+                print("결석자 확인 중")
+
+            # 어느하나라도 있으면 안됨
             else:
-                print("")
+                print("지각자 명단 대조 중")
 
         else:
-            print("결석 여부 체크 중입니다")
+            continue
 
-    aCheckSql = "select count(*) as cnt from checkabsence;"
-    curs.execute(aCheckSql)
+    absenceNumSql = "select count(*) as cnt from checkabsence;"
+    curs.execute(absenceNumSql)
     absenceNum = curs.fetchone()[0]
-
     print("결석자는 총 " + str(absenceNum) + "명 입니다.")
 
     conn.commit()

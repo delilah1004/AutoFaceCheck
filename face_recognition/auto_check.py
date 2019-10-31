@@ -6,6 +6,7 @@ import camera
 import os
 import numpy as np
 import pymysql
+import auto_absence_check
 
 class FaceRecog():
     def __init__(self):
@@ -63,8 +64,9 @@ class FaceRecog():
             curs.execute(sqlCount, int(userInfo))
             existStu = curs.fetchone()[0]
 
-            # existStu > 0 -> 전체 출석부에 이름이 있으면 실행
+            # 전체 출석부에 있으면 실행
             if existStu > 0:
+
                 # 해당 학번 학생의 이름이 무엇인지 전체 출석부에서 확인
                 sqlList = "select * from stuList where stuId = %s;"
                 curs.execute(sqlList, int(userInfo))
@@ -72,17 +74,45 @@ class FaceRecog():
 
                 print(stuName + " 은 해당 강의 수강생 입니다")
 
-                #############정상 출석부 checknormality에 있는지 확인
+                # 정상 출석부에 있는지 확인
                 sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
                 curs.execute(sqlCountN, int(userInfo))
-                alreadyExist = curs.fetchone()[0]
-                # checknormality -> 정상 출석 출석부, 이름이 등록되어 있지 않으면 등록하도록 한다
-                if alreadyExist < 1:
-                    normalCheckSql = """insert into checknormality(stuId,stuName)
-                    values (%s, %s)"""
-                    curs.execute(normalCheckSql, (int(userInfo), stuName))
-                    print(stuName + "은 정상 출석부에 반영되었습니다")
+                existStuN = curs.fetchone()[0]
 
+                # 출석자 명단에 없으면
+                if existStuN < 1:
+
+                    # 지각생 명단에 있는지 확인
+                    aCheckSql = "select count(*) as cnt from checkabsence where stuID = %s;"
+                    curs.execute(aCheckSql, int(userInfo))
+                    existStuA = curs.fetchone()[0]
+
+                    # 결석자 명단에 있는지 확인
+                    sqlCountA = "select count(*) as cnt from checklate where stuId = %s;"
+                    curs.execute(sqlCountA, int(userInfo))
+                    existStuL = curs.fetchone()[0]
+
+                    # 결석자, 지각자 명단 둘 다 없으면
+                    if existStuA < 1 and existStuL < 1:
+
+                        # 정상 출석부에 반영
+                        normalCheckSql = """insert into checknormality(stuId,stuName) values (%s, %s)"""
+                        curs.execute(normalCheckSql, (int(userInfo), stuName))
+                        print(stuName + "은 정상 출석부에 반영되었습니다")
+                    
+                    # 지각 명단에 있으면
+                    elif existStuA < 1 and existStuL > 0:
+                        print(stuName + " 은 지각자 입니다")
+
+                        
+                    # 결석자 명단에 있으면
+                    elif existStuA > 0 and existStuL < 1:
+                        print(stuName + " 은 결석자 입니다")
+
+                    else:
+                        print("중복 입력 에러 입니다. DB를 확인해주세요")
+
+                # 출석자 명단에 있으면
                 else:
                     print(stuName + "은 이미 정상 출석 되어있습니다")
 
@@ -144,12 +174,15 @@ class FaceRecog():
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
+            # 인천대 db에 없는 사람일 경우
             if name == "Unknown":
                 print("인천대학교 학생이 아닙니다")
             
+            # 교수님일 경우
             elif 'pro' in name:
                 continue
 
+            #인천대 db에 있는 사람일 경우
             else:
                 print("인천대학교 학생 입니다")
                 self.dbConnect(name)
@@ -179,6 +212,7 @@ def checkNormalityStart():
 
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
+            auto_absence_check.checkAbsenceStart()
             break
 
     # do a bit of cleanup
