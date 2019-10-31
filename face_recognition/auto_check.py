@@ -42,12 +42,12 @@ class FaceRecog():
             
             # MySQL 데이터 처리
             # MySQL Connection 셋팅
-            # conn = pymysql.connect(host='localhost', user='root', password='as097531',
-            #                     db='autofacecheck', charset='utf8')
+            conn = pymysql.connect(host='localhost', user='root', password='as097531',
+                                db='autofacecheck', charset='utf8')
 
             ##### 다은이 DB
-            conn = pymysql.connect(host='localhost', user='root', password='asd1234',
-                                db='autofacecheck', charset='utf8')
+            # conn = pymysql.connect(host='localhost', user='root', password='asd1234',
+            #                     db='autofacecheck', charset='utf8')
 
             # conn = pymysql.connect(host='localhost', user='root', password='ghwns4825',
             #                     db='autofacecheck', charset='utf8')
@@ -85,16 +85,6 @@ class FaceRecog():
 
                 else:
                     print(stuName + "은 이미 정상 출석 되어있습니다")
-                # className = "check"
-                # checkType = "Normality"
-                # tableName = className + checkType
-                # createSql = """create table `autoFaceCheck`.`%s` (
-                #     `attendTime` timestamp default now(),
-	            #     `stuId` int NOT NULL,
-                #     `stuName` VARCHAR(45) NOT NULL
-                # );"""
-                # curs.execute(createSql, tableName)
-                # 정상 출석부에 이름을 추가
 
 
             
@@ -154,12 +144,15 @@ class FaceRecog():
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-            if name != "Unknown":
+            if name == "Unknown":
+                print("인천대학교 학생이 아닙니다")
+            
+            elif 'pro' in name:
+                continue
+
+            else:
                 print("인천대학교 학생 입니다")
                 self.dbConnect(name)
-            
-            else:
-                print("인천대학교 학생이 아닙니다")
 
         return frame
 
