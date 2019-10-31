@@ -6,6 +6,8 @@ import camera
 import os
 import numpy as np
 import pymysql
+import time
+import threading
 
 class FaceRecog():
     def __init__(self):
@@ -16,6 +18,7 @@ class FaceRecog():
 
         self.known_face_encodings = []
         self.known_face_names = []
+        self.consoleList = []
 
         # Load sample pictures and learn how to recognize it.
         dirname = 'knowns'
@@ -72,11 +75,9 @@ class FaceRecog():
                 curs.execute(sqlCountA, int(userInfo))
                 existStuA = curs.fetchone()[0]
 
-                print(stuName + " 은 해당 강의 수강생 입니다")
-
                 # 지각자 명단에 있는지 확인
-                lateCheckSql = "select count(*) as cnt from checklate where stuId = %s;"
-                curs.execute(lateCheckSql, int(userInfo))
+                sqlCountL = "select count(*) as cnt from checklate where stuId = %s;"
+                curs.execute(sqlCountL, int(userInfo))
                 existStuL = curs.fetchone()[0]
 
                 # 정상 출석부에 있는지 확인
@@ -84,10 +85,16 @@ class FaceRecog():
                 curs.execute(sqlCountN, int(userInfo))
                 existStuN = curs.fetchone()[0]
 
+                # print(stuName + " 은 해당 강의 수강생 입니다")
+                consoleStr = stuName + " 은 해당 강의 수강생 입니다"
+                self.consoleList.append(consoleStr)
+                
                 # 결석자 명단에 있으면
                 if existStuA > 0:
 
-                    print(stuName + " 은 지각생 입니다")
+                    # print(stuName + " 은 지각생 입니다")
+                    consoleStr = stuName + " 은 지각생 입니다"
+                    self.consoleList.append(consoleStr)
 
                     # 지각자, 정상자 명단에 없으면
                     if existStuL < 1 and existStuN < 1:
@@ -97,33 +104,57 @@ class FaceRecog():
                         curs.execute(absenceDeleteSql, stuName)
 
                         # 지각자 명단에 추가
-                        lateInsertSql = "insert into checklate(stuId,stuName) values (%s, %s);"
-                        curs.execute(lateInsertSql, (int(userInfo), stuName))
+                        sqlInsertL = "insert into checklate(stuId,stuName) values (%s, %s);"
+                        curs.execute(sqlInsertL, (int(userInfo), stuName))
 
-                        print(stuName + "은 지각으로 변경되었습니다")
+                        # print(stuName + "은 지각으로 변경되었습니다")
+                        consoleStr = stuName + " 은 지각으로 변경되었습니다"
+                        self.consoleList.append(consoleStr)
 
                     else:
-                        print("출석부 중복 에러. DB 확인 요망")
+                        # print("출석부 중복 에러. DB 확인 요망")
+
+                        consoleStr = "출석부 중복 에러. DB 확인 요망"
+                        self.consoleList.append(consoleStr)
 
                 # 결석자 명단에 없으면
                 else:
 
                     # 정상 출석부에 없고, 지각자 명단에 있으면
                     if existStuL > 0 and existStuN < 1:
-                        print(stuName + "은 이미 지각 체크를 하였습니다.")
+                        
+                        # print(stuName + "은 이미 지각 체크를 하였습니다.")
+
+                        consoleStr = stuName + " 은 이미 지각 체크를 하였습니다."
+                        self.consoleList.append(consoleStr)
+
+                    # 정상 출석부에 있고, 지각자 명단에 없으면
+                    elif existStuN > 0 and existStuL < 1
+
+                        # print(stuName + " 은 이미 정상 출석 하였습니다.")
+
+                        consoleStr = stuName + " 은 이미 정상 출석 하였습니다."
+                        self.consoleList.append(consoleStr)
 
                     else:
-                        print("출석부 중복 에러. DB 확인 요망")
+                        #print("출석부 중복 에러. DB 확인 요망")
 
-
-
+                        consoleStr = "출석부 중복 에러. DB 확인 요망"
+                        self.consoleList.append(consoleStr)
             
             else:
 
-                print("해당 강의를 수강하지 않는 학생이 있습니다.")
+                # print("해당 강의를 수강하지 않는 학생이 있습니다.")
+                consoleStr = "해당 강의를 수강하지 않는 학생이 있습니다."
+                self.consoleList.append(consoleStr)
 
             conn.commit()
             conn.close()
+
+    # 전역변수인 cList에 추가
+    def addStaticList(self, cList):
+        for i in self.consoleList:
+            cList.append(i)
 
     def get_frame(self):
         # Grab a single frame of video
@@ -174,12 +205,22 @@ class FaceRecog():
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-            if name != "Unknown":
-                print("인천대학교 학생 입니다")
-                self.dbConnect(name)
+            # 인천대 db에 없는 사람일 경우
+            if name == "Unknown":
+
+                # print("인천대학교 학생이 아닌 사람이 있습니다")
+                consoleStr = "인천대학교 학생이 아닌 사람이 있습니다"
+
+                # 중복 리스트에 추가후 중복제거
+                self.makeConsole(consoleStr)
             
+            # 교수님일 경우
+            elif 'pro' in name:
+                continue
+
+            #인천대 db에 있는 사람일 경우
             else:
-                print("인천대학교 학생이 아닙니다")
+                self.dbConnect(name)
 
         return frame
 
@@ -191,22 +232,48 @@ class FaceRecog():
         ret, jpg = cv2.imencode('.jpg', frame)
         return jpg.tobytes()
 
+class TimeCheck():
+    def __init__(self):
+        self.runningCheck = True
+
+    def timer(self):
+        print("타이머 시작")
+        threading.Timer(15, self.runningStop).start()
+    
+    def runningStop(self):
+        self.runningCheck = False
+        return self.runningCheck
+
 def checkLateStart():
+
+    cList = []
+    duList = []
 
     print("지각체크를 시작 합니다")
 
     face_recog = FaceRecog()
     print(face_recog.known_face_names)
-    while True:
+
+    time_check = TimeCheck()
+    time_check.timer()
+
+    while time_check.runningCheck:
         frame = face_recog.get_frame()
 
         # show the frame
         cv2.imshow("Frame", frame)
+
+        face_recog.addStaticList(duList)
+        cList = list(set(duList))
+
         key = cv2.waitKey(1) & 0xFF
 
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
+
+    for cl in cList:
+        print(cl)
 
     # do a bit of cleanup
     cv2.destroyAllWindows()

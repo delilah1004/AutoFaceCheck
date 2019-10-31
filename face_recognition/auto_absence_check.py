@@ -16,8 +16,8 @@ def lateListCheck():
     curs = conn.cursor()
 
     # 전체 출석부 출력
-    sql = "select * from stuList;"
-    curs.execute(sql)
+    sqlList = "select * from stuList;"
+    curs.execute(sqlList)
     stuList = curs.fetchall()
 
     for stu in stuList:
@@ -26,13 +26,13 @@ def lateListCheck():
         stuName = stu[2]
 
         # 정상 출석부에 있는지 확인
-        nCheckSql = "select count(*) as cnt from checknormality where stuID = %s;"
-        curs.execute(nCheckSql, stuId)
+        sqlCountN = "select count(*) as cnt from checknormality where stuID = %s;"
+        curs.execute(sqlCountN, stuId)
         existStuN = curs.fetchone()[0]
 
         # 지각생 리스트에 있는지 확인
-        aCheckSql = "select count(*) as cnt from checklate where stuID = %s;"
-        curs.execute(aCheckSql, stuId)
+        sqlCountL = "select count(*) as cnt from checklate where stuID = %s;"
+        curs.execute(sqlCountL, stuId)
         existStuL = curs.fetchone()[0]
 
         # 결석자 명단에 있는지 확인
@@ -47,8 +47,8 @@ def lateListCheck():
             if existStuL < 1 and existStuA < 1:
 
                 # 결석자 명단에 추가
-                absenceInsertSql = "insert into checkabsence(stuId,stuName) values (%s, %s);"
-                curs.execute(absenceInsertSql, (stuId, stuName))
+                sqlInsertA = "insert into checkabsence(stuId,stuName) values (%s, %s);"
+                curs.execute(sqlInsertA, (stuId, stuName))
 
                 print("결석자 확인 중")
 

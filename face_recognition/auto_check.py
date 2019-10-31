@@ -7,6 +7,8 @@ import os
 import numpy as np
 import pymysql
 import auto_absence_check
+import time
+import threading
 
 class FaceRecog():
     def __init__(self):
@@ -17,6 +19,7 @@ class FaceRecog():
 
         self.known_face_encodings = []
         self.known_face_names = []
+        self.consoleList = []
 
         # Load sample pictures and learn how to recognize it.
         dirname = 'knowns'
@@ -59,7 +62,6 @@ class FaceRecog():
             curs = conn.cursor()
 
             # 얼굴 인식 후 전체 출석부에 있는 얼굴인지 테스트 한다.
-            # existStu 0이면 없는 사람, 1이면 있는 사람이다.
             sqlCount = "select count(*) as cnt from stuList where stuID = %s;"
             curs.execute(sqlCount, int(userInfo))
             existStu = curs.fetchone()[0]
@@ -72,7 +74,9 @@ class FaceRecog():
                 curs.execute(sqlList, int(userInfo))
                 stuName = curs.fetchone()[2]
 
-                print(stuName + " 은 해당 강의 수강생 입니다")
+                # print(stuName + " 은 해당 강의 수강생 입니다")
+                consoleStr = stuName + " 은 해당 강의 수강생 입니다"
+                self.consoleList.append(consoleStr)
 
                 # 정상 출석부에 있는지 확인
                 sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
@@ -82,48 +86,66 @@ class FaceRecog():
                 # 출석자 명단에 없으면
                 if existStuN < 1:
 
-                    # 지각생 명단에 있는지 확인
-                    aCheckSql = "select count(*) as cnt from checkabsence where stuID = %s;"
-                    curs.execute(aCheckSql, int(userInfo))
+                    # 결석자 명단에 있는지 확인
+                    sqlCheckA = "select count(*) as cnt from checkabsence where stuID = %s;"
+                    curs.execute(sqlCheckA, int(userInfo))
                     existStuA = curs.fetchone()[0]
 
-                    # 결석자 명단에 있는지 확인
-                    sqlCountA = "select count(*) as cnt from checklate where stuId = %s;"
-                    curs.execute(sqlCountA, int(userInfo))
+                    # 지각자 명단에 있는지 확인
+                    sqlCountL = "select count(*) as cnt from checklate where stuId = %s;"
+                    curs.execute(sqlCountL, int(userInfo))
                     existStuL = curs.fetchone()[0]
 
                     # 결석자, 지각자 명단 둘 다 없으면
                     if existStuA < 1 and existStuL < 1:
 
                         # 정상 출석부에 반영
-                        normalCheckSql = """insert into checknormality(stuId,stuName) values (%s, %s)"""
-                        curs.execute(normalCheckSql, (int(userInfo), stuName))
-                        print(stuName + "은 정상 출석부에 반영되었습니다")
+                        sqlInsertN = """insert into checknormality(stuId,stuName) values (%s, %s)"""
+                        curs.execute(sqlInsertN, (int(userInfo), stuName))
+
+                        # print(stuName + "은 정상 출석부에 반영되었습니다")
+                        consoleStr = stuName + "은 정상 출석부에 반영되었습니다"
+                        self.consoleList.append(consoleStr)
                     
                     # 지각 명단에 있으면
                     elif existStuA < 1 and existStuL > 0:
-                        print(stuName + " 은 지각자 입니다")
+
+                        # print(stuName + " 은 지각자 입니다")
+                        consoleStr = stuName + " 은 지각자 입니다"
+                        self.consoleList.append(consoleStr)
 
                         
                     # 결석자 명단에 있으면
                     elif existStuA > 0 and existStuL < 1:
-                        print(stuName + " 은 결석자 입니다")
+
+                        # print(stuName + " 은 결석자 입니다")
+                        consoleStr = stuName + " 은 결석자 입니다"
+                        self.consoleList.append(consoleStr)
 
                     else:
-                        print("중복 입력 에러 입니다. DB를 확인해주세요")
+
+                        # print("중복 입력 에러 입니다. DB를 확인해주세요")
+                        consoleStr = "중복 입력 에러 입니다. DB를 확인해주세요"
+                        self.consoleList.append(consoleStr)
 
                 # 출석자 명단에 있으면
                 else:
-                    print(stuName + "은 이미 정상 출석 되어있습니다")
+                    # print(stuName + "은 이미 정상 출석 되어있습니다")
+                    consoleStr = stuName + "은 이미 정상 출석 되어있습니다"
+                    self.consoleList.append(consoleStr)
 
-
-            
             else:
-
-                print("해당 강의를 수강하지 않는 학생이 있습니다.")
+                # print("해당 강의를 수강하지 않는 학생이 있습니다.")
+                consoleStr = "해당 강의를 수강하지 않는 학생이 있습니다."
+                self.consoleList.append(consoleStr)
 
             conn.commit()
             conn.close()
+
+    # 전역변수인 cList에 추가
+    def addStaticList(self, cList):
+        for i in self.consoleList:
+            cList.append(i)
 
     def get_frame(self):
         # Grab a single frame of video
@@ -176,7 +198,10 @@ class FaceRecog():
 
             # 인천대 db에 없는 사람일 경우
             if name == "Unknown":
-                print("인천대학교 학생이 아닙니다")
+
+                # print("인천대학교 학생이 아닙니다")
+                consoleStr = "인천대학교 학생이 아닌 사람이 있습니다"
+                self.consoleList.append(consoleStr)
             
             # 교수님일 경우
             elif 'pro' in name:
@@ -184,7 +209,6 @@ class FaceRecog():
 
             #인천대 db에 있는 사람일 경우
             else:
-                print("인천대학교 학생 입니다")
                 self.dbConnect(name)
 
         return frame
@@ -197,24 +221,52 @@ class FaceRecog():
         ret, jpg = cv2.imencode('.jpg', frame)
         return jpg.tobytes()
 
+class TimeCheck():
+    def __init__(self):
+        self.runningCheck = True
+
+    def timer(self):
+        print("타이머 시작")
+        threading.Timer(15, self.runningStop).start()
+    
+    def runningStop(self):
+        self.runningCheck = False
+        return self.runningCheck
+
+
 def checkNormalityStart():
+
+    cList = []
+    duList = []
 
     print("출석체크를 시작 합니다")
 
     face_recog = FaceRecog()
     print(face_recog.known_face_names)
-    while True:
+
+    time_check = TimeCheck()
+    time_check.timer()
+
+    while time_check.runningCheck:
         frame = face_recog.get_frame()
 
         # show the frame
         cv2.imshow("Frame", frame)
+
+        face_recog.addStaticList(duList)
+        cList = list(set(duList))
+
         key = cv2.waitKey(1) & 0xFF
 
-        # if the `q` key was pressed, break from the loop
+        # 출석체크가 다 끝나지 않았는데 중간에 종료 시킬때
         if key == ord("q"):
             auto_absence_check.checkAbsenceStart()
             break
 
+    for cl in cList:
+        print(cl)
+
     # do a bit of cleanup
+    auto_absence_check.checkAbsenceStart()
     cv2.destroyAllWindows()
     print('finish')
