@@ -9,9 +9,45 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import auto_check
 import auto_late_check
+import static
+import pymysql
 
 class Ui_MainWindow_subject(object):
+    def __init__(self):
+        self.classList = []
+
+    def callClass(self):
+        print(static.staticVar.profID)
+        idd = static.staticVar.profID
+        
+        conn = pymysql.connect(host='localhost', user='root', password='as097531',
+                                db='autofacecheck', charset='utf8')
+
+
+        # Connection 으로부터 Cursor 생성
+        curs = conn.cursor()
+
+        sqlSetClass = "SELECT * FROM profsubject WHERE profId = %s;"
+        curs.execute(sqlSetClass, (idd))
+        tmpClassList = curs.fetchall()
+        # print(len(curs.fetchall()))
+
+        if(len(tmpClassList)>0):
+            print("choose class")
+
+            for c in tmpClassList:
+                subject = c[1]
+                self.classList.append(subject)
+
+            print(self.classList)
+
+        else:
+            print("no class")
+
+
     def setupUi(self, MainWindow_subject):
+        self.callClass()
+
         MainWindow_subject.setObjectName("MainWindow_subject")
         MainWindow_subject.resize(448, 313)
         self.centralwidget = QtWidgets.QWidget(MainWindow_subject)
@@ -52,11 +88,11 @@ class Ui_MainWindow_subject(object):
         font.setPointSize(16)
         self.comboBox.setFont(font)
         self.comboBox.setObjectName("comboBox")
+
         self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
+        for cb in self.classList:
+            self.comboBox.addItem("")
+        
         self.horizontalLayout.addWidget(self.comboBox)
         MainWindow_subject.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow_subject)
@@ -78,10 +114,19 @@ class Ui_MainWindow_subject(object):
         self.pushButton_2.setText(_translate("MainWindow_subject", "Late"))
         self.label.setText(_translate("MainWindow_subject", "Name"))
         self.comboBox.setItemText(0, _translate("MainWindow_subject", " - - - - - select - - - - - "))
-        self.comboBox.setItemText(1, _translate("MainWindow_subject", "데이터구조"))
-        self.comboBox.setItemText(2, _translate("MainWindow_subject", "운영체제"))
-        self.comboBox.setItemText(3, _translate("MainWindow_subject", "프로그래밍"))
-        self.comboBox.setItemText(4, _translate("MainWindow_subject", "데이터베이스"))
+        
+        index = 0
+        for cl in self.classList:
+            index = index + 1
+            self.comboBox.setItemText(index, _translate("MainWindow_subject", cl))
+
+            if index == len(self.classList):
+                break
+
+        # self.comboBox.setItemText(1, _translate("MainWindow_subject", "데이터구조"))
+        # self.comboBox.setItemText(2, _translate("MainWindow_subject", "운영체제"))
+        # self.comboBox.setItemText(3, _translate("MainWindow_subject", "프로그래밍"))
+        # self.comboBox.setItemText(4, _translate("MainWindow_subject", "데이터베이스"))
     
     def btn1_clicked(self):
         auto_check.checkNormalityStart()

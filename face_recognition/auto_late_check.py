@@ -129,7 +129,7 @@ class FaceRecog():
                         self.consoleList.append(consoleStr)
 
                     # 정상 출석부에 있고, 지각자 명단에 없으면
-                    elif existStuN > 0 and existStuL < 1
+                    elif existStuN > 0 and existStuL < 1:
 
                         # print(stuName + " 은 이미 정상 출석 하였습니다.")
 
@@ -156,6 +156,7 @@ class FaceRecog():
         for i in self.consoleList:
             cList.append(i)
 
+    # 인식된 얼굴에 프레임 씌우기
     def get_frame(self):
         # Grab a single frame of video
         frame = self.camera.get_frame()
@@ -223,14 +224,6 @@ class FaceRecog():
                 self.dbConnect(name)
 
         return frame
-
-    def get_jpg_bytes(self):
-        frame = self.get_frame()
-        # We are using Motion JPEG, but OpenCV defaults to capture raw images,
-        # so we must encode it into JPEG in order to correctly display the
-        # video stream.
-        ret, jpg = cv2.imencode('.jpg', frame)
-        return jpg.tobytes()
 
 class TimeCheck():
     def __init__(self):
