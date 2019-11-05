@@ -9,6 +9,7 @@ import pymysql
 import auto_absence_check
 import time
 import threading
+import static
 
 class FaceRecog():
     def __init__(self):
@@ -20,6 +21,7 @@ class FaceRecog():
         self.known_face_encodings = []
         self.known_face_names = []
         self.consoleList = []
+        self.staticData = static.staticVar
 
         # Load sample pictures and learn how to recognize it.
         dirname = 'knowns'
@@ -79,7 +81,7 @@ class FaceRecog():
                 self.consoleList.append(consoleStr)
 
                 # 정상 출석부에 있는지 확인
-                sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
+                sqlCountN = "select count(*) as cnt from " + self.staticData.checkTable + " where stuId = %s"
                 curs.execute(sqlCountN, int(userInfo))
                 existStuN = curs.fetchone()[0]
 
@@ -87,12 +89,12 @@ class FaceRecog():
                 if existStuN < 1:
 
                     # 결석자 명단에 있는지 확인
-                    sqlCheckA = "select count(*) as cnt from checkabsence where stuID = %s;"
+                    sqlCheckA = "select count(*) as cnt from " + self.staticData.absenceTable + " where stuID = %s;"
                     curs.execute(sqlCheckA, int(userInfo))
                     existStuA = curs.fetchone()[0]
 
                     # 지각자 명단에 있는지 확인
-                    sqlCountL = "select count(*) as cnt from checklate where stuId = %s;"
+                    sqlCountL = "select count(*) as cnt from " + self.staticData.lateTable + " where stuId = %s;"
                     curs.execute(sqlCountL, int(userInfo))
                     existStuL = curs.fetchone()[0]
 
@@ -100,7 +102,7 @@ class FaceRecog():
                     if existStuA < 1 and existStuL < 1:
 
                         # 정상 출석부에 반영
-                        sqlInsertN = """insert into checknormality(stuId,stuName) values (%s, %s)"""
+                        sqlInsertN = "insert into " + self.staticData.checkTable + "(stuId,stuName) values (%s, %s)"
                         curs.execute(sqlInsertN, (int(userInfo), stuName))
 
                         # print(stuName + "은 정상 출석부에 반영되었습니다")

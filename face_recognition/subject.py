@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'subject.ui'
-#
-# Created by: PyQt5 UI code generator 5.9.2
-#
-# WARNING! All changes made in this file will be lost!
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 import auto_check
 import auto_late_check
 import static
 import pymysql
+import create_table
 
 class Ui_MainWindow_subject(object):
     def __init__(self):
         self.classList = []
+        self.classCodeList = []
+        self.staticData = static.staticVar
 
     def callClass(self):
-        print(static.staticVar.profID)
-        idd = static.staticVar.profID
+        
+        userID = self.staticData.profID
+        print(userID)
         
         conn = pymysql.connect(host='localhost', user='root', password='as097531',
                                 db='autofacecheck', charset='utf8')
@@ -28,16 +24,20 @@ class Ui_MainWindow_subject(object):
         curs = conn.cursor()
 
         sqlSetClass = "SELECT * FROM profsubject WHERE profId = %s;"
-        curs.execute(sqlSetClass, (idd))
+        curs.execute(sqlSetClass, (userID))
         tmpClassList = curs.fetchall()
-        # print(len(curs.fetchall()))
+        
+        conn.commit()
+        conn.close()
 
         if(len(tmpClassList)>0):
             print("choose class")
 
             for c in tmpClassList:
                 subject = c[1]
+                subjectNum = c[0]
                 self.classList.append(subject)
+                self.classCodeList.append(subjectNum)
 
             print(self.classList)
 
@@ -74,15 +74,18 @@ class Ui_MainWindow_subject(object):
         self.widget = QtWidgets.QWidget(self.groupBox)
         self.widget.setGeometry(QtCore.QRect(60, 60, 301, 71))
         self.widget.setObjectName("widget")
+
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(self.widget)
         font = QtGui.QFont()
         font.setPointSize(14)
+
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
+
         self.comboBox = QtWidgets.QComboBox(self.widget)
         font = QtGui.QFont()
         font.setPointSize(16)
@@ -95,10 +98,12 @@ class Ui_MainWindow_subject(object):
         
         self.horizontalLayout.addWidget(self.comboBox)
         MainWindow_subject.setCentralWidget(self.centralwidget)
+
         self.menubar = QtWidgets.QMenuBar(MainWindow_subject)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 448, 21))
         self.menubar.setObjectName("menubar")
         MainWindow_subject.setMenuBar(self.menubar)
+
         self.statusbar = QtWidgets.QStatusBar(MainWindow_subject)
         self.statusbar.setObjectName("statusbar")
         MainWindow_subject.setStatusBar(self.statusbar)
@@ -122,14 +127,27 @@ class Ui_MainWindow_subject(object):
 
             if index == len(self.classList):
                 break
-
-        # self.comboBox.setItemText(1, _translate("MainWindow_subject", "데이터구조"))
-        # self.comboBox.setItemText(2, _translate("MainWindow_subject", "운영체제"))
-        # self.comboBox.setItemText(3, _translate("MainWindow_subject", "프로그래밍"))
-        # self.comboBox.setItemText(4, _translate("MainWindow_subject", "데이터베이스"))
     
     def btn1_clicked(self):
-        auto_check.checkNormalityStart()
+        comboBoxText = str(self.comboBox.currentText())
+        
+        # subject 선택 안됨
+        if 'select' in comboBoxText:
+            print("choose another class")
+
+        else:
+            classIndex = 0
+            for c in self.classList:
+
+                if comboBoxText == c:
+                    break
+                
+                classIndex = classIndex + 1
+            
+            classCode = str(self.classCodeList[classIndex])
+            create_table.CreateTable(classCode)
+            auto_check.checkNormalityStart()
+
     def btn2_clicked(self):
         auto_late_check.checkLateStart()
 

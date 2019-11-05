@@ -69,16 +69,20 @@ class Ui_MainWindow_login(object):
         # self.window.show()
 
     def setupUi(self, MainWindow_login):
+
         MainWindow_login.setObjectName("MainWindow_login")
         MainWindow_login.resize(448, 313)
         MainWindow_login.setTabShape(QtWidgets.QTabWidget.Rounded)
+
         self.centralwidget = QtWidgets.QWidget(MainWindow_login)
         self.centralwidget.setObjectName("centralwidget")
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QtCore.QRect(10, 10, 421, 261))
+
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(20)
+
         self.groupBox.setFont(font)
         self.groupBox.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.groupBox.setObjectName("groupBox")
@@ -97,13 +101,17 @@ class Ui_MainWindow_login(object):
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
         self.label_user = QtWidgets.QLabel(self.splitter)
+
         font = QtGui.QFont()
         font.setPointSize(14)
+
         self.label_user.setFont(font)
         self.label_user.setObjectName("label_user")
         self.lineEdit_user = QtWidgets.QLineEdit(self.splitter)
+
         font = QtGui.QFont()
         font.setPointSize(16)
+
         self.lineEdit_user.setFont(font)
         self.lineEdit_user.setObjectName("lineEdit_user")
         self.verticalLayout.addWidget(self.splitter)
@@ -111,31 +119,43 @@ class Ui_MainWindow_login(object):
         self.splitter_2.setOrientation(QtCore.Qt.Horizontal)
         self.splitter_2.setObjectName("splitter_2")
         self.label_password = QtWidgets.QLabel(self.splitter_2)
+
         font = QtGui.QFont()
         font.setPointSize(14)
+
         self.label_password.setFont(font)
         self.label_password.setObjectName("label_password")
         self.lineEdit_password = QtWidgets.QLineEdit(self.splitter_2)
+
         font = QtGui.QFont()
         font.setPointSize(16)
+
         self.lineEdit_password.setFont(font)
         self.lineEdit_password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.lineEdit_password.setObjectName("lineEdit_password")
         self.verticalLayout.addWidget(self.splitter_2)
         self.pushButton_login = QtWidgets.QPushButton(self.splitter_3)
+
         font = QtGui.QFont()
         font.setPointSize(16)
+
         self.pushButton_login.setFont(font)
         self.pushButton_login.setObjectName("pushButton_login")
+
         #버튼 클릭 이벤트 연결
         self.pushButton_login.clicked.connect(self.dbConnect)
         MainWindow_login.setCentralWidget(self.centralwidget)
+
+        # 메뉴바 UI
         self.menubar = QtWidgets.QMenuBar(MainWindow_login)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 448, 21))
         self.menubar.setObjectName("menubar")
+
         MainWindow_login.setMenuBar(self.menubar)
+
         self.statusbar = QtWidgets.QStatusBar(MainWindow_login)
         self.statusbar.setObjectName("statusbar")
+
         MainWindow_login.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow_login)

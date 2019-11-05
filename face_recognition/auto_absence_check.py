@@ -1,8 +1,11 @@
 import pymysql
+import static
 
 def lateListCheck():
 
     print("정상출석부와 대조 시작")
+
+    staticData = static.staticVar
 
     # MySQL 데이터 처리
     # MySQL Connection 셋팅
@@ -26,17 +29,17 @@ def lateListCheck():
         stuName = stu[2]
 
         # 정상 출석부에 있는지 확인
-        sqlCountN = "select count(*) as cnt from checknormality where stuID = %s;"
+        sqlCountN = "select count(*) as cnt from " + staticData.checkTable + " where stuID = %s;"
         curs.execute(sqlCountN, stuId)
         existStuN = curs.fetchone()[0]
 
         # 지각생 리스트에 있는지 확인
-        sqlCountL = "select count(*) as cnt from checklate where stuID = %s;"
+        sqlCountL = "select count(*) as cnt from " + staticData.lateTable + " where stuID = %s;"
         curs.execute(sqlCountL, stuId)
         existStuL = curs.fetchone()[0]
 
         # 결석자 명단에 있는지 확인
-        sqlCountA = "select count(*) as cnt from checkabsence where stuId = %s;"
+        sqlCountA = "select count(*) as cnt from " + staticData.absenceTable + " where stuId = %s;"
         curs.execute(sqlCountA, stuId)
         existStuA = curs.fetchone()[0]
 
@@ -47,7 +50,7 @@ def lateListCheck():
             if existStuL < 1 and existStuA < 1:
 
                 # 결석자 명단에 추가
-                sqlInsertA = "insert into checkabsence(stuId,stuName) values (%s, %s);"
+                sqlInsertA = "insert into " + staticData.absenceTable + "(stuId,stuName) values (%s, %s);"
                 curs.execute(sqlInsertA, (stuId, stuName))
 
                 print("결석자 확인 중")
@@ -59,7 +62,7 @@ def lateListCheck():
         else:
             continue
 
-    absenceNumSql = "select count(*) as cnt from checkabsence;"
+    absenceNumSql = "select count(*) as cnt from " + staticData.absenceTable +";"
     curs.execute(absenceNumSql)
     absenceNum = curs.fetchone()[0]
     print("결석자는 총 " + str(absenceNum) + "명 입니다.")

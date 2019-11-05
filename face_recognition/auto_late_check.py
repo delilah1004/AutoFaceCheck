@@ -8,6 +8,7 @@ import numpy as np
 import pymysql
 import time
 import threading
+import static
 
 class FaceRecog():
     def __init__(self):
@@ -19,6 +20,7 @@ class FaceRecog():
         self.known_face_encodings = []
         self.known_face_names = []
         self.consoleList = []
+        self.staticData = static.staticVar
 
         # Load sample pictures and learn how to recognize it.
         dirname = 'knowns'
@@ -71,17 +73,17 @@ class FaceRecog():
                 stuName = curs.fetchone()[2]
 
                 # 결석자 명단에 있는지 확인
-                sqlCountA = "select count(*) as cnt from checkabsence where stuId = %s;"
+                sqlCountA = "select count(*) as cnt from " + self.staticData.absenceTable + " where stuId = %s;"
                 curs.execute(sqlCountA, int(userInfo))
                 existStuA = curs.fetchone()[0]
 
                 # 지각자 명단에 있는지 확인
-                sqlCountL = "select count(*) as cnt from checklate where stuId = %s;"
+                sqlCountL = "select count(*) as cnt from " + self.staticData.lateTable + " where stuId = %s;"
                 curs.execute(sqlCountL, int(userInfo))
                 existStuL = curs.fetchone()[0]
 
                 # 정상 출석부에 있는지 확인
-                sqlCountN = "select count(*) as cnt from checknormality where stuId = %s"
+                sqlCountN = "select count(*) as cnt from " + self.staticData.checkTable + " where stuId = %s"
                 curs.execute(sqlCountN, int(userInfo))
                 existStuN = curs.fetchone()[0]
 
@@ -100,11 +102,11 @@ class FaceRecog():
                     if existStuL < 1 and existStuN < 1:
 
                         # 결석자 명단서 삭제
-                        absenceDeleteSql = "delete from checkabsence where stuName = %s;"
+                        absenceDeleteSql = "delete from " + self.staticData.absenceTable +" where stuName = %s;"
                         curs.execute(absenceDeleteSql, stuName)
 
                         # 지각자 명단에 추가
-                        sqlInsertL = "insert into checklate(stuId,stuName) values (%s, %s);"
+                        sqlInsertL = "insert into " + self.staticData.lateTable + "(stuId,stuName) values (%s, %s);"
                         curs.execute(sqlInsertL, (int(userInfo), stuName))
 
                         # print(stuName + "은 지각으로 변경되었습니다")
