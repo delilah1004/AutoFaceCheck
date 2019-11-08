@@ -1,3 +1,5 @@
+# 결석 체크 모듈
+
 import pymysql
 import static
 

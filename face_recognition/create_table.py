@@ -1,3 +1,5 @@
+# 출석부 동적 생성 모듈
+
 from datetime import datetime
 import pymysql
 import static

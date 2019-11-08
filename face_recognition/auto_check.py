@@ -1,4 +1,4 @@
-# face_recog.py
+# 자동 출석 체크 모듈
 
 import face_recognition
 import cv2
@@ -10,6 +10,7 @@ import auto_absence_check
 import time
 import threading
 import static
+import etc_module
 
 class FaceRecog():
     def __init__(self):
@@ -20,8 +21,8 @@ class FaceRecog():
 
         self.known_face_encodings = []
         self.known_face_names = []
-        self.consoleList = []
         self.staticData = static.staticVar
+        self.etc_module = etc_module
 
         # Load sample pictures and learn how to recognize it.
         dirname = 'knowns'
@@ -76,9 +77,7 @@ class FaceRecog():
                 curs.execute(sqlList, int(userInfo))
                 stuName = curs.fetchone()[2]
 
-                # print(stuName + " 은 해당 강의 수강생 입니다")
-                consoleStr = stuName + " 은 해당 강의 수강생 입니다"
-                self.consoleList.append(consoleStr)
+                print(stuName + " 은 해당 강의 수강생 입니다")
 
                 # 정상 출석부에 있는지 확인
                 sqlCountN = "select count(*) as cnt from " + self.staticData.checkTable + " where stuId = %s"
@@ -105,49 +104,32 @@ class FaceRecog():
                         sqlInsertN = "insert into " + self.staticData.checkTable + "(stuId,stuName) values (%s, %s)"
                         curs.execute(sqlInsertN, (int(userInfo), stuName))
 
-                        # print(stuName + "은 정상 출석부에 반영되었습니다")
-                        consoleStr = stuName + "은 정상 출석부에 반영되었습니다"
-                        self.consoleList.append(consoleStr)
+                        print(stuName + "은 정상 출석부에 반영되었습니다")
                     
                     # 지각 명단에 있으면
                     elif existStuA < 1 and existStuL > 0:
 
-                        # print(stuName + " 은 지각자 입니다")
-                        consoleStr = stuName + " 은 지각자 입니다"
-                        self.consoleList.append(consoleStr)
+                        print(stuName + " 은 지각자 입니다")
 
                         
                     # 결석자 명단에 있으면
                     elif existStuA > 0 and existStuL < 1:
 
-                        # print(stuName + " 은 결석자 입니다")
-                        consoleStr = stuName + " 은 결석자 입니다"
-                        self.consoleList.append(consoleStr)
+                        print(stuName + " 은 결석자 입니다")
 
                     else:
 
-                        # print("중복 입력 에러 입니다. DB를 확인해주세요")
-                        consoleStr = "중복 입력 에러 입니다. DB를 확인해주세요"
-                        self.consoleList.append(consoleStr)
+                        print("중복 입력 에러 입니다. DB를 확인해주세요")
 
                 # 출석자 명단에 있으면
                 else:
-                    # print(stuName + "은 이미 정상 출석 되어있습니다")
-                    consoleStr = stuName + "은 이미 정상 출석 되어있습니다"
-                    self.consoleList.append(consoleStr)
+                    print(stuName + "은 이미 정상 출석 되어있습니다")
 
             else:
-                # print("해당 강의를 수강하지 않는 학생이 있습니다.")
-                consoleStr = "해당 강의를 수강하지 않는 학생이 있습니다."
-                self.consoleList.append(consoleStr)
+                print("해당 강의를 수강하지 않는 학생이 있습니다.")
 
             conn.commit()
             conn.close()
-
-    # 전역변수인 cList에 추가
-    def addStaticList(self, cList):
-        for i in self.consoleList:
-            cList.append(i)
 
     def get_frame(self):
         # Grab a single frame of video
@@ -201,9 +183,7 @@ class FaceRecog():
             # 인천대 db에 없는 사람일 경우
             if name == "Unknown":
 
-                # print("인천대학교 학생이 아닙니다")
-                consoleStr = "인천대학교 학생이 아닌 사람이 있습니다"
-                self.consoleList.append(consoleStr)
+                print("인천대학교 학생이 아닙니다")
             
             # 교수님일 경우
             elif 'pro' in name:
@@ -211,7 +191,7 @@ class FaceRecog():
 
             #인천대 db에 있는 사람일 경우
             else:
-                self.dbConnect(name)
+                self.etc_module.CheckAccuracy(name)
 
         return frame
 
@@ -238,9 +218,6 @@ class TimeCheck():
 
 def checkNormalityStart():
 
-    cList = []
-    duList = []
-
     print("출석체크를 시작 합니다")
 
     face_recog = FaceRecog()
@@ -255,18 +232,19 @@ def checkNormalityStart():
         # show the frame
         cv2.imshow("Frame", frame)
 
-        face_recog.addStaticList(duList)
-        cList = list(set(duList))
-
         key = cv2.waitKey(1) & 0xFF
 
         # 출석체크가 다 끝나지 않았는데 중간에 종료 시킬때
         if key == ord("q"):
             auto_absence_check.checkAbsenceStart()
             break
-
-    for cl in cList:
-        print(cl)
+    
+    for checkId, checkNum in static.staticVar.checkDictionary.items():
+        if checkNum > 5:
+            print(str(checkId) + " : " + str(checkNum))
+            face_recog.dbConnect(checkId)
+    
+    static.staticVar.checkDictionary = {}
 
     # do a bit of cleanup
     auto_absence_check.checkAbsenceStart()
