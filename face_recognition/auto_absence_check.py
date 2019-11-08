@@ -9,7 +9,7 @@ def lateListCheck():
 
     # MySQL 데이터 처리
     # MySQL Connection 셋팅
-    conn = pymysql.connect(host='localhost', user='root', password='as097531',
+    conn = pymysql.connect(host='localhost', user='root', password='asd1234',
                         db='autofacecheck', charset='utf8')
 
     ##### 다은이 DB

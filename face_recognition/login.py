@@ -29,7 +29,7 @@ class Ui_MainWindow_login(object):
             # conn = pymysql.connect(host='localhost', user='root', password='asd1234',
             #                     db='autofacecheck', charset='utf8')
 
-            conn = pymysql.connect(host='localhost', user='root', password='as097531',
+            conn = pymysql.connect(host='localhost', user='root', password='asd1234',
                                 db='autofacecheck', charset='utf8')
 
 

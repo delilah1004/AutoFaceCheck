@@ -15,7 +15,7 @@ def CreateTable(classCode):
     staticData.absenceTable = mToday+classCode+"absence"
 
     # 디비 연결
-    conn = pymysql.connect(host='localhost', user='root', password='as097531',
+    conn = pymysql.connect(host='localhost', user='root', password='asd1234',
                         db='autofacecheck', charset='utf8')
 
     curs = conn.cursor()
