@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'login.ui'
-#
-# Created by: PyQt5 UI code generator 5.9.2
-#
-# WARNING! All changes made in this file will be lost!
+# 로그인 화면 UI 및 기능
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 # 버튼 클릭시 넘어가는 창 참조

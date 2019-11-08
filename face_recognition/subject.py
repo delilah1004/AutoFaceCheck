@@ -1,3 +1,5 @@
+# 출석 진행 과목 선택 창 UI 및 기능
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 import auto_check
 import auto_late_check

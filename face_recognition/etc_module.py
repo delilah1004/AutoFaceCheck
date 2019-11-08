@@ -5,7 +5,7 @@ import pymysql
 import static
 
 def CreateTable(classCode):
-    # classCode = str(self.classCodeList[classIndex])
+    
     staticData = static.staticVar
 
     now = datetime.now()
@@ -49,3 +49,46 @@ def CreateTable(classCode):
 
     conn.commit()
     conn.close()
+
+# 출석 반영 여부 정확도 향상 모듈
+def CheckAccuracy(checkName):
+
+    dicList = static.staticVar.checkDictionary
+    
+    # 이름이 있으면 값 1 추가
+    if checkName in dicList:
+        dicList[checkName] += 1 
+
+    # 없으면 default 1 설정해주고 생성
+    else:
+        dicList[checkName] = 1
+
+
+
+
+#######################################################################################
+        # # knowns 디렉토리 모음
+        # dirname = 'knowns'
+        # self.fname = 'exp'
+
+        # # jpg 담긴 폴더들
+        # folders = os.listdir(dirname)
+
+        # # 각 폴더들 참조
+        # for folder in folders:
+        #     files = os.listdir(folder)
+        #     self.fname = folder
+        #     print(files)
+
+        #     for filename in files:
+        #         name, ext = os.path.splitext(filename)
+        #         name = self.fname
+
+        #         if ext == '.jpg':
+        #             self.known_face_names.append(name)
+        #             pathname = os.path.join(folder, filename)
+        #             img = face_recognition.load_image_file(pathname)
+        #             face_encoding = face_recognition.face_encodings(img)[0]
+        #             self.known_face_encodings.append(face_encoding)
+
+        #######################################################################################

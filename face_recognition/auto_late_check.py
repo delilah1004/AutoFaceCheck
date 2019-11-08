@@ -1,4 +1,4 @@
-# face_recog.py
+# 지각 자동 출석 모듈
 
 import face_recognition
 import cv2
@@ -9,24 +9,26 @@ import pymysql
 import time
 import threading
 import static
+import etc_module
 
 class FaceRecog():
     def __init__(self):
-        # Using OpenCV to capture from device 0. If you have trouble capturing
-        # from a webcam, comment the line below out and use a video file
-        # instead.
+
         self.camera = camera.VideoCamera()
 
         self.known_face_encodings = []
         self.known_face_names = []
-        self.consoleList = []
+        
         self.staticData = static.staticVar
+        self.etc_module = etc_module
 
-        # Load sample pictures and learn how to recognize it.
+        # knowns 디렉토리 모음
         dirname = 'knowns'
+        
         files = os.listdir(dirname)
         for filename in files:
             name, ext = os.path.splitext(filename)
+            
             if ext == '.jpg':
                 self.known_face_names.append(name)
                 pathname = os.path.join(dirname, filename)
@@ -87,16 +89,12 @@ class FaceRecog():
                 curs.execute(sqlCountN, int(userInfo))
                 existStuN = curs.fetchone()[0]
 
-                # print(stuName + " 은 해당 강의 수강생 입니다")
-                consoleStr = stuName + " 은 해당 강의 수강생 입니다"
-                self.consoleList.append(consoleStr)
+                print(stuName + " 은 해당 강의 수강생 입니다")
                 
                 # 결석자 명단에 있으면
                 if existStuA > 0:
 
-                    # print(stuName + " 은 지각생 입니다")
-                    consoleStr = stuName + " 은 지각생 입니다"
-                    self.consoleList.append(consoleStr)
+                    print(stuName + " 은 지각생 입니다")
 
                     # 지각자, 정상자 명단에 없으면
                     if existStuL < 1 and existStuN < 1:
@@ -109,15 +107,10 @@ class FaceRecog():
                         sqlInsertL = "insert into " + self.staticData.lateTable + "(stuId,stuName) values (%s, %s);"
                         curs.execute(sqlInsertL, (int(userInfo), stuName))
 
-                        # print(stuName + "은 지각으로 변경되었습니다")
-                        consoleStr = stuName + " 은 지각으로 변경되었습니다"
-                        self.consoleList.append(consoleStr)
+                        print(stuName + "은 지각으로 변경되었습니다")
 
                     else:
-                        # print("출석부 중복 에러. DB 확인 요망")
-
-                        consoleStr = "출석부 중복 에러. DB 확인 요망"
-                        self.consoleList.append(consoleStr)
+                        print("출석부 중복 에러. DB 확인 요망")
 
                 # 결석자 명단에 없으면
                 else:
@@ -125,38 +118,22 @@ class FaceRecog():
                     # 정상 출석부에 없고, 지각자 명단에 있으면
                     if existStuL > 0 and existStuN < 1:
                         
-                        # print(stuName + "은 이미 지각 체크를 하였습니다.")
-
-                        consoleStr = stuName + " 은 이미 지각 체크를 하였습니다."
-                        self.consoleList.append(consoleStr)
+                        print(stuName + "은 이미 지각 체크를 하였습니다.")
 
                     # 정상 출석부에 있고, 지각자 명단에 없으면
                     elif existStuN > 0 and existStuL < 1:
 
-                        # print(stuName + " 은 이미 정상 출석 하였습니다.")
-
-                        consoleStr = stuName + " 은 이미 정상 출석 하였습니다."
-                        self.consoleList.append(consoleStr)
+                        print(stuName + " 은 이미 정상 출석 하였습니다.")
 
                     else:
-                        #print("출석부 중복 에러. DB 확인 요망")
-
-                        consoleStr = "출석부 중복 에러. DB 확인 요망"
-                        self.consoleList.append(consoleStr)
+                        print("출석부 중복 에러. DB 확인 요망")
             
             else:
 
-                # print("해당 강의를 수강하지 않는 학생이 있습니다.")
-                consoleStr = "해당 강의를 수강하지 않는 학생이 있습니다."
-                self.consoleList.append(consoleStr)
+                print("해당 강의를 수강하지 않는 학생이 있습니다.")
 
             conn.commit()
             conn.close()
-
-    # 전역변수인 cList에 추가
-    def addStaticList(self, cList):
-        for i in self.consoleList:
-            cList.append(i)
 
     # 인식된 얼굴에 프레임 씌우기
     def get_frame(self):
@@ -211,11 +188,7 @@ class FaceRecog():
             # 인천대 db에 없는 사람일 경우
             if name == "Unknown":
 
-                # print("인천대학교 학생이 아닌 사람이 있습니다")
-                consoleStr = "인천대학교 학생이 아닌 사람이 있습니다"
-
-                # 중복 리스트에 추가후 중복제거
-                self.makeConsole(consoleStr)
+                print("인천대학교 학생이 아닌 사람이 있습니다")
             
             # 교수님일 경우
             elif 'pro' in name:
@@ -223,7 +196,7 @@ class FaceRecog():
 
             #인천대 db에 있는 사람일 경우
             else:
-                self.dbConnect(name)
+                self.etc_module.CheckAccuracy(name)
 
         return frame
 
@@ -241,9 +214,6 @@ class TimeCheck():
 
 def checkLateStart():
 
-    cList = []
-    duList = []
-
     print("지각체크를 시작 합니다")
 
     face_recog = FaceRecog()
@@ -258,17 +228,18 @@ def checkLateStart():
         # show the frame
         cv2.imshow("Frame", frame)
 
-        face_recog.addStaticList(duList)
-        cList = list(set(duList))
-
         key = cv2.waitKey(1) & 0xFF
 
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
+    
+    for checkId, checkNum in static.staticVar.checkDictionary.items():
+        if checkNum > 5:
+            print(str(checkId) + " : " + str(checkNum))
+            face_recog.dbConnect(checkId)
 
-    for cl in cList:
-        print(cl)
+    static.staticVar.checkDictionary = {}
 
     # do a bit of cleanup
     cv2.destroyAllWindows()

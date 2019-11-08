@@ -1,5 +1,4 @@
-# camera.py
-
+# 카메라 테스트 파일
 import cv2
 
 class VideoCamera(object):
