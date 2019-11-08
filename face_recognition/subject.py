@@ -5,7 +5,7 @@ import auto_check
 import auto_late_check
 import static
 import pymysql
-import create_table
+import etc_module
 
 class Ui_MainWindow_subject(object):
     def __init__(self):
@@ -147,7 +147,7 @@ class Ui_MainWindow_subject(object):
                 classIndex = classIndex + 1
             
             classCode = str(self.classCodeList[classIndex])
-            create_table.CreateTable(classCode)
+            etc_module.CreateTable(classCode)
             auto_check.checkNormalityStart()
 
     def btn2_clicked(self):
