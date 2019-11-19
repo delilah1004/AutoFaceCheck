@@ -1,8 +1,10 @@
 # 로그인 화면 UI 및 기능
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 # 버튼 클릭시 넘어가는 창 참조
 from subject import Ui_MainWindow_subject
+
 # login 버튼 누르면 subject 창으로 넘어가기
 import pymysql
 import static
@@ -11,34 +13,15 @@ class Ui_MainWindow_login(object):
     def dbConnect(self):
 
             idd = int(float(self.lineEdit_user.text()))
-            # idd = str(self.lineEdit_user.text())
             pww = str(self.lineEdit_password.text())
 
-            # MySQL 데이터 처리
-            # MySQL Connection 셋팅
-            # conn = pymysql.connect(host='localhost', user='root', password='ghwns4825',
-            #                     db='autofacecheck', charset='utf8')
-
-            ##### 다은이 DB
-            # conn = pymysql.connect(host='localhost', user='root', password='asd1234',
-            #                     db='autofacecheck', charset='utf8')
-
-            conn = pymysql.connect(host='localhost', user='root', password='asd1234',
+            conn = pymysql.connect(host='localhost', user='root', password='as097531',
                                 db='autofacecheck', charset='utf8')
 
 
             # Connection 으로부터 Cursor 생성
             curs = conn.cursor()
 
-
-            # print(idd)
-            # print(pww)
-            # print(str(type(idd)))
-            # print(str(type(pww)))
-
-            # sqlCount = "select count(*) as cnt from stuList where stuID = %s;"
-            # curs.execute(sqlCount, int(userInfo))
-            # existStu = curs.fetchone()[0]
             sqlLogin = "SELECT * FROM proflist WHERE profId = %s AND profPW = %s ;"
             curs.execute(sqlLogin, (idd, pww))
             # print(len(curs.fetchall()))
@@ -56,11 +39,6 @@ class Ui_MainWindow_login(object):
     
     def openWindow(self):
         self.dbConnect()
-        # self.window = QtWidgets.QMainWindow()
-        # self.ui = Ui_MainWindow_subject()
-        # self.ui.setupUi(self.window)
-        # MainWindow_login.hide()
-        # self.window.show()
 
     def setupUi(self, MainWindow_login):
 
@@ -157,22 +135,11 @@ class Ui_MainWindow_login(object):
 
     def retranslateUi(self, MainWindow_login):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow_login.setWindowTitle(_translate("MainWindow_login", "MainWindow"))
+        MainWindow_login.setWindowTitle(_translate("MainWindow_login", "Login"))
         self.groupBox.setTitle(_translate("MainWindow_login", "Auto Face Check"))
         self.label_user.setText(_translate("MainWindow_login", "User              "))
         self.label_password.setText(_translate("MainWindow_login", "Password     "))
         self.pushButton_login.setText(_translate("MainWindow_login", "LOGIN"))
-
-    # def pushButton_login(event=None):
-    #     dbConnect(self, userInfo)
-    #     if lineEdit_user.get() != "" and lineEdit_password.get() != "":
-    #         curs.execute("SELECT * FROM `test` WHERE `id` = ? AND `pw` = ?", (lineEdit_user.get(), lineEdit_password.get()))
-    #         if curs.fetchone() is not None:
-    #             lineEdit_user.set("")
-    #             lineEdit_password.set("")
-    #             self.pushButton_login.clicked.connect(self.openWindow)
-    #     curs.close()
-
 
     
 

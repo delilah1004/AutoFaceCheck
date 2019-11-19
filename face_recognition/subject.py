@@ -18,7 +18,7 @@ class Ui_MainWindow_subject(object):
         userID = self.staticData.profID
         print(userID)
         
-        conn = pymysql.connect(host='localhost', user='root', password='asd1234',
+        conn = pymysql.connect(host='localhost', user='root', password='as097531',
                                 db='autofacecheck', charset='utf8')
 
 
